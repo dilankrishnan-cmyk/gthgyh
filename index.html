@@ -815,7 +815,9 @@ function renderCol() {
   var g = document.getElementById('colgrid');
   if (!col.length) { g.innerHTML='<div class="empty"><div class="eicon">&#11041;</div>No cards yet. Buy some packs!</div>'; return; }
   g.innerHTML = col.map(function(c) {
-    return '<div class="citem '+c.rarity+'"><div class="cimg">'+imgH(c)+'</div>' +
+    var src = getImgSrc(c);
+    var clickAttr = src ? ' onclick="zoomCard(this)" data-img="' + src + '" data-name="' + c.name.replace(/"/g,'&quot;') + '" style="cursor:zoom-in"' : '';
+    return '<div class="citem '+c.rarity+'"'+clickAttr+'><div class="cimg">'+imgH(c)+'</div>' +
       '<div class="cinfo"><div class="cname">'+c.name+'</div><div class="cpow">PWR '+c.power+'</div>' +
       '<span class="rbadge '+c.rarity+'">'+c.rarity+'</span>' +
       '<div class="sval">Sell value: '+(c.sellValue||10)+' coins</div></div></div>';
@@ -1295,6 +1297,16 @@ function saveAllImages() {
   });
 }
 
+function zoomCard(el) {
+  var src = el.getAttribute('data-img');
+  var name = el.getAttribute('data-name');
+  if (!src) return;
+  var ov = document.getElementById('zoomOverlay');
+  ov.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;"><img src="'+src+'" style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.8);"><div style="color:#e2e8f0;font-size:20px;font-weight:700;margin-top:16px;">'+name+'</div><div style="color:#64748b;font-size:13px;margin-top:4px;">Tap anywhere to close</div></div>';
+  ov.style.display = 'flex';
+}
+function closeZoom() { document.getElementById('zoomOverlay').style.display = 'none'; }
+
 document.getElementById('ap').addEventListener('keydown', function(e){if(e.key==='Enter')handleAuth();});
 
 function importFromPaste() {
@@ -1394,5 +1406,6 @@ function importFromPaste() {
 document.getElementById('au').addEventListener('keydown', function(e){if(e.key==='Enter')handleAuth();});
 
 </script>
+  <div id="zoomOverlay" onclick="closeZoom()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:9999;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;"></div>
 </body>
 </html>
