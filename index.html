@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Cards</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial,sans-serif; background:#0a0a15; color:#e2e8f0; min-height:100vh; }
+#loginPage { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+#appPage { display:none; }
+.login-box { background:#12122a; border:2px solid #2a2a50; border-radius:16px; padding:40px; width:100%; max-width:380px; }
+.logo { text-align:center; font-size:30px; font-weight:900; letter-spacing:6px; color:#7c3aed; margin-bottom:4px; }
+.logo-sub { text-align:center; color:#64748b; font-size:11px; letter-spacing:4px; text-transform:uppercase; margin-bottom:28px; }
+.auth-tabs { display:flex; background:#0a0a15; border-radius:8px; padding:4px; margin-bottom:20px; gap:4px; }
+.auth-tab { flex:1; padding:10px; border:none; border-radius:6px; background:transparent; color:#64748b; font-size:14px; font-weight:700; cursor:pointer; font-family:Arial,sans-serif; }
+.auth-tab.on { background:#7c3aed; color:white; }
+.lbl { display:block; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#64748b; margin:14px 0 6px; }
+.inp { width:100%; padding:13px 14px; background:#0a0a15; border:2px solid #2a2a50; border-radius:8px; color:#e2e8f0; font-size:15px; outline:none; font-family:Arial,sans-serif; }
+.inp:focus { border-color:#7c3aed; }
+.btn-login { width:100%; padding:14px; background:#7c3aed; border:none; border-radius:8px; color:white; font-size:16px; font-weight:700; cursor:pointer; margin-top:22px; font-family:Arial,sans-serif; }
+.btn-login:hover { background:#6d28d9; }
+#authMsg { text-align:center; margin-top:14px; font-size:14px; min-height:20px; font-weight:700; padding:8px; border-radius:6px; }
+#authMsg.err { color:#ef4444; background:#2d0a0a; }
+#authMsg.ok { color:#10b981; background:#0d2b1e; }
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:#12122a; border-bottom:2px solid #2a2a50; position:sticky; top:0; z-index:50; flex-wrap:wrap; gap:8px; }
+.tlogo { font-size:18px; font-weight:900; letter-spacing:4px; color:#7c3aed; }
+.coins { background:#1a1a35; border:2px solid #f59e0b55; border-radius:50px; padding:7px 18px; color:#fbbf24; font-size:16px; font-weight:700; }
+.topright { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.uchip { padding:6px 12px; background:#1a1a35; border:2px solid #7c3aed55; border-radius:6px; font-size:13px; font-weight:700; }
+.uchip.adm { border-color:#f59e0b; color:#fbbf24; }
+.sync-indicator { font-size:11px; color:#10b981; display:flex; align-items:center; gap:4px; }
+.sync-dot { width:7px; height:7px; border-radius:50%; background:#10b981; }
+.sync-indicator.saving .sync-dot { background:#f59e0b; animation:pulse 1s infinite; }
+.sync-indicator.saving { color:#f59e0b; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+.btn-out { padding:8px 14px; background:transparent; border:2px solid #2a2a50; border-radius:6px; color:#64748b; font-size:13px; cursor:pointer; font-family:Arial,sans-serif; font-weight:600; }
+.btn-out:hover { border-color:#ef4444; color:#ef4444; }
+.nav { display:flex; gap:4px; padding:10px 20px; background:#0e0e22; border-bottom:2px solid #2a2a50; overflow-x:auto; flex-wrap:wrap; }
+.nbtn { padding:9px 16px; background:transparent; border:1px solid transparent; border-radius:7px; color:#64748b; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:Arial,sans-serif; }
+.nbtn:hover { color:white; background:#1a1a35; }
+.nbtn.on { color:white; background:#1a1a35; border-color:#7c3aed; }
+.content { padding:24px 20px; max-width:1100px; margin:0 auto; }
+.stitle { font-size:20px; font-weight:800; letter-spacing:2px; margin-bottom:6px; }
+.ssub { color:#64748b; font-size:13px; margin-bottom:22px; }
+.adminbox { background:#1a150a; border:2px solid #f59e0b55; border-radius:12px; padding:20px; margin-bottom:24px; max-width:400px; }
+.atitle { color:#fbbf24; font-size:12px; font-weight:800; letter-spacing:3px; text-transform:uppercase; margin-bottom:14px; }
+.fcard { background:#12122a; border:2px solid #2a2a50; border-radius:14px; padding:26px; max-width:440px; margin-bottom:26px; }
+.fld { margin-bottom:14px; }
+.fld label { display:block; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#64748b; margin-bottom:6px; }
+.fld input, .fld select { width:100%; padding:11px 13px; background:#0a0a15; border:2px solid #2a2a50; border-radius:7px; color:#e2e8f0; font-size:14px; outline:none; font-family:Arial,sans-serif; }
+.fld input:focus, .fld select:focus { border-color:#7c3aed; }
+.fld select option { background:#12122a; }
+.btn-do { padding:13px 24px; background:#7c3aed; border:none; border-radius:8px; color:white; font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; font-family:Arial,sans-serif; }
+.btn-do:hover { background:#6d28d9; }
+.btn-warn { padding:13px 24px; background:#1a1000; border:2px solid #f59e0b; border-radius:8px; color:#fbbf24; font-size:14px; font-weight:700; cursor:pointer; margin-top:8px; margin-left:8px; font-family:Arial,sans-serif; display:none; }
+.cgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+.citem { background:#12122a; border-radius:12px; overflow:hidden; border:2px solid #2a2a50; transition:transform 0.2s; }
+.citem:hover { transform:translateY(-3px); }
+.citem.rare { border-color:#3b82f6; box-shadow:0 0 12px #3b82f625; }
+.citem.legendary { border-color:#f59e0b; box-shadow:0 0 18px #f59e0b35; }
+.cimg { width:100%; background:#0a0a15; display:flex; align-items:center; justify-content:center; padding:0; height:200px; overflow:hidden; border-radius:8px 8px 0 0; }
+.cimg img { width:100%; height:200px; object-fit:contain; display:block; background:#0a0a15; }
+.cinfo { padding:12px; }
+.cname { font-size:12px; font-weight:700; margin-bottom:4px; }
+.cpow { color:#64748b; font-size:11px; margin-bottom:6px; }
+.rbadge { display:inline-block; padding:3px 9px; border-radius:50px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.rbadge.common { background:#374151; color:#9ca3af; }
+.rbadge.rare { background:#1e3a5f; color:#60a5fa; }
+.rbadge.legendary { background:#3d2800; color:#fbbf24; }
+.sval { font-size:11px; color:#fbbf24; margin-bottom:8px; }
+.btn-sc { width:100%; padding:9px; background:#0d2b1e; border:2px solid #10b98144; border-radius:6px; color:#10b981; font-size:12px; font-weight:700; cursor:pointer; font-family:Arial,sans-serif; margin-bottom:4px; }
+.btn-sc:hover { background:#10b98122; }
+.btn-dc { width:100%; padding:9px; background:#2d0a0a; border:2px solid #ef444444; border-radius:6px; color:#ef4444; font-size:12px; font-weight:700; cursor:pointer; font-family:Arial,sans-serif; margin-bottom:4px; }
+.btn-dc:hover { background:#ef444422; }
+.btn-ec { width:100%; padding:9px; background:#0a1a2d; border:2px solid #3b82f644; border-radius:6px; color:#60a5fa; font-size:12px; font-weight:700; cursor:pointer; font-family:Arial,sans-serif; margin-bottom:4px; }
+.btn-ec:hover { background:#3b82f622; }
+.pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; }
+.pitem { background:#12122a; border:2px solid #2a2a50; border-radius:14px; padding:20px; transition:transform 0.2s; }
+.pitem:hover { transform:translateY(-3px); border-color:#7c3aed55; }
+.picon { font-size:38px; margin-bottom:10px; display:block; }
+.pname { font-size:14px; font-weight:800; letter-spacing:1px; margin-bottom:5px; }
+.pprice { font-size:20px; font-weight:700; color:#fbbf24; margin-bottom:5px; }
+.pcnt { color:#64748b; font-size:12px; margin-bottom:12px; }
+.orow { display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px; }
+.otrack { height:4px; background:#0a0a15; border-radius:4px; margin-bottom:7px; overflow:hidden; }
+.ofill { height:100%; border-radius:4px; }
+.ofill.common { background:#6b7280; }
+.ofill.rare { background:#3b82f6; }
+.ofill.legendary { background:#f59e0b; }
+.btn-bp { width:100%; padding:11px; background:#7c3aed; border:none; border-radius:8px; color:white; font-size:13px; font-weight:700; cursor:pointer; margin-top:10px; font-family:Arial,sans-serif; }
+.btn-bp:hover { background:#6d28d9; }
+.btn-bp:disabled { background:#2a2a50; color:#64748b; cursor:not-allowed; }
+.btn-op { width:100%; padding:11px; background:#f59e0b; border:none; border-radius:8px; color:#000; font-size:14px; font-weight:900; cursor:pointer; margin-top:10px; font-family:Arial,sans-serif; }
+.btn-op:hover { background:#d97706; }
+.btn-dp { width:100%; padding:9px; background:transparent; border:2px solid #ef444444; border-radius:7px; color:#ef4444; font-size:12px; font-weight:700; cursor:pointer; margin-top:6px; font-family:Arial,sans-serif; }
+.btn-dp:hover { background:#ef444415; }
+.btn-ep { width:100%; padding:9px; background:#0a1a2d; border:2px solid #3b82f644; border-radius:7px; color:#60a5fa; font-size:12px; font-weight:700; cursor:pointer; margin-top:6px; font-family:Arial,sans-serif; }
+.btn-ep:hover { background:#3b82f622; }
+.stats { display:flex; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
+.sbox { background:#12122a; border:2px solid #2a2a50; border-radius:10px; padding:16px 22px; text-align:center; min-width:90px; }
+.snum { font-size:26px; font-weight:900; margin-bottom:2px; }
+.slbl { font-size:10px; letter-spacing:2px; color:#64748b; text-transform:uppercase; }
+.infobox { padding:14px 18px; border-radius:10px; margin-bottom:18px; font-weight:700; font-size:14px; display:none; }
+.infobox.ok { background:#0d2b1e; border:2px solid #10b981; color:#10b981; }
+.infobox.warn { background:#1a1000; border:2px solid #f59e0b; color:#fbbf24; }
+.empty { text-align:center; padding:50px; color:#64748b; font-size:14px; grid-column:1/-1; }
+.eicon { font-size:40px; margin-bottom:12px; }
+#editModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:8000; align-items:center; justify-content:center; padding:20px; }
+#editModal.show { display:flex; }
+.modal-box { background:#12122a; border:2px solid #7c3aed; border-radius:16px; padding:30px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; }
+.modal-title { font-size:16px; font-weight:800; letter-spacing:2px; margin-bottom:20px; color:#7c3aed; }
+.modal-btns { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.btn-cancel { padding:12px 20px; background:transparent; border:2px solid #2a2a50; border-radius:8px; color:#64748b; font-size:14px; font-weight:700; cursor:pointer; font-family:Arial,sans-serif; }
+.btn-cancel:hover { border-color:#ef4444; color:#ef4444; }
+#revealOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.97); z-index:9999; overflow-y:auto; }
+.reveal-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:30px; }
+.rev-title { font-size:22px; font-weight:900; letter-spacing:4px; color:#f59e0b; margin-bottom:30px; text-align:center; }
+#revealCards { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:30px; }
+.rcard { width:160px; background:#12122a; border-radius:12px; overflow:hidden; opacity:0; transform:scale(0.5); transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1); border:2px solid #2a2a50; }
+.rcard.show { opacity:1; transform:scale(1); }
+.rcard.rare { border-color:#3b82f6; box-shadow:0 0 20px #3b82f660; }
+.rcard.legendary { border-color:#f59e0b; box-shadow:0 0 35px #f59e0b80; }
+.rcard-img { width:100%; background:#0a0a15; display:flex; align-items:center; justify-content:center; padding:10px; min-height:80px; }
+.rcard-img img { width:100%; height:auto; max-height:180px; object-fit:contain; display:block; }
+.rcard-body { padding:11px; }
+.rcard-name { font-size:11px; font-weight:700; margin-bottom:4px; }
+.rcard-pow { font-size:11px; color:#64748b; }
+.btn-collect { padding:14px 44px; background:#7c3aed; border:none; border-radius:10px; color:white; font-size:15px; font-weight:800; letter-spacing:2px; cursor:pointer; font-family:Arial,sans-serif; }
+.btn-collect:hover { background:#6d28d9; }
+#toast { position:fixed; bottom:24px; right:24px; padding:14px 22px; background:#12122a; border:2px solid #10b981; border-radius:10px; color:#10b981; font-size:13px; font-weight:700; z-index:99999; opacity:0; pointer-events:none; transition:opacity 0.3s; max-width:300px; }
+#toast.show { opacity:1; }
+#toast.terr { border-color:#ef4444; color:#ef4444; }
+.cdot { position:fixed; width:8px; height:8px; border-radius:2px; pointer-events:none; z-index:99998; animation:fall linear forwards; }
+@keyframes fall { 0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(100vh) rotate(540deg)} }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:#0a0a15; }
+::-webkit-scrollbar-thumb { background:#2a2a50; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-box">
+    <div class="logo">NEXUS</div>
+    <div class="logo-sub">Card Marketplace</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="tabL" onclick="setMode('login')">Login</button>
+      <button class="auth-tab" id="tabR" onclick="setMode('register')">Register</button>
+    </div>
+    <label class="lbl">Username</label>
+    <input class="inp" id="au" placeholder="Enter username" autocomplete="off">
+    <label class="lbl">Password</label>
+    <input class="inp" id="ap" type="password" placeholder="Enter password" autocomplete="off">
+    <button class="btn-login" id="asbtn" onclick="handleAuth()">Login</button>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<div id="appPage">
+  <div class="topbar">
+    <div class="tlogo">NEXUS</div>
+    <div class="coins">&#127809; <span id="cv">0</span></div>
+    <div class="topright">
+      <span class="uchip" id="uchip">-</span>
+      <span class="sync-indicator" id="syncInd"><span class="sync-dot"></span>Synced</span>
+      <button class="btn-out" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nbtn" id="n0" onclick="go(0)">Collection</button>
+    <button class="nbtn" id="n1" onclick="go(1)">Marketplace</button>
+    <button class="nbtn" id="n2" onclick="go(2)">Unopened Packs</button>
+    <button class="nbtn" id="n3" onclick="go(3)">Sell Cards</button>
+    <button class="nbtn" id="n4" onclick="go(4)" style="display:none">Upload Card</button>
+    <button class="nbtn" id="n5" onclick="go(5)" style="display:none">Create Pack</button>
+    <button class="nbtn" id="n6" onclick="go(6)" style="display:none">Images</button>
+  </div>
+  <div class="content">
+    <div class="adminbox" id="abox" style="display:none">
+      <div class="atitle">Admin Controls</div>
+      <div class="fld"><label>Set Your Coins</label><input type="number" id="acoin" placeholder="e.g. 9999"></div>
+      <button class="btn-do" onclick="setCoins()">Update Coins</button>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f59e0b44;">
+        <div style="color:#fbbf24;font-size:12px;font-weight:700;margin-bottom:4px;">Import Old Cards &amp; Packs</div>
+        <div style="color:#64748b;font-size:11px;margin-bottom:8px;">Paste your JSONBin data below then click Import</div>
+        <textarea id="importPaste" placeholder='Paste JSON here...' style="width:100%;height:100px;background:#0a0a15;border:2px solid #f59e0b44;border-radius:7px;color:#e2e8f0;font-size:11px;padding:8px;font-family:monospace;resize:vertical;"></textarea>
+        <button class="btn-do" onclick="importFromPaste()" id="importBtn" style="background:#1a150a;border:2px solid #f59e0b;color:#fbbf24;margin-top:6px;">Import</button>
+        <div id="importMsg" style="margin-top:8px;font-size:13px;font-weight:700;"></div>
+      </div>
+    </div>
+    <div id="t0" style="display:none">
+      <div class="stitle">Your Collection</div>
+      <div class="ssub">Cards you own</div>
+      <div class="stats" id="colstats"></div>
+      <div class="cgrid" id="colgrid"></div>
+    </div>
+    <div id="t1" style="display:none">
+      <div class="stitle">Marketplace</div>
+      <div class="ssub">Buy packs with coins</div>
+      <div class="pgrid" id="mktgrid"></div>
+    </div>
+    <div id="t2" style="display:none">
+      <div class="stitle">Unopened Packs</div>
+      <div class="ssub">Open your packs to reveal cards</div>
+      <div class="pgrid" id="unopgrid"></div>
+    </div>
+    <div id="t3" style="display:none">
+      <div class="stitle" id="selltitle">Sell Cards</div>
+      <div class="ssub">Convert cards into coins</div>
+      <div class="cgrid" id="sellgrid"></div>
+    </div>
+    <div id="t4" style="display:none">
+      <div class="stitle">Upload Card</div>
+      <div class="ssub">Add cards to the game pool</div>
+      <div class="infobox" id="dupwarn"></div>
+      <div class="infobox" id="poolconfirm"></div>
+      <div class="fcard">
+        <div class="fld"><label>Card Name</label><input id="uname" placeholder="e.g. Shadow Dragon" oninput="checkDup()"></div>
+        <div class="fld"><label>Power</label><input type="number" id="upow" placeholder="e.g. 9500"></div>
+        <div class="fld"><label>Image URL</label>
+          <input id="uimg" placeholder="https://i.imgur.com/...">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <label style="background:#1a150a;border:2px solid #f59e0b44;color:#fbbf24;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;">
+              &#128247; Upload Image
+              <input type="file" id="ufile" accept="image/*" style="display:none" onchange="uploadToImgur(this)">
+            </label>
+            <span id="imgurStatus" style="font-size:12px;color:#64748b;"></span>
+          </div>
+        </div>
+        <div class="fld"><label>Rarity</label>
+          <select id="urar">
+            <option value="common">Common</option>
+            <option value="rare">Rare</option>
+            <option value="legendary">Legendary</option>
+          </select>
+        </div>
+        <div class="fld"><label>Sell Value (coins)</label><input type="number" id="usell" placeholder="e.g. 20"></div>
+        <button class="btn-do" onclick="uploadCard(false)">Upload Card</button>
+        <button class="btn-warn" id="forceBtn" onclick="uploadCard(true)">Upload Anyway</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+        <div class="stitle" style="font-size:16px;margin-bottom:0">Card Pool (<span id="poolcount">0</span> cards)</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <label style="background:#1a150a;border:2px solid #10b981;color:#10b981;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">&#128248; Bulk Upload Images<input type="file" accept="image/*" multiple style="display:none" onchange="openMatcher(this)"></label>
+          <span id="convertStatus" style="font-size:11px;color:#64748b;max-width:220px;text-align:right;"></span>
+        </div>
+      </div>
+      <div class="ssub">All cards available in packs</div>
+      <div class="cgrid" id="poolgrid"></div>
+    </div>
+    <div id="t5" style="display:none">
+      <div class="stitle">Create Pack</div>
+      <div class="ssub">Design packs for the marketplace</div>
+      <div class="fcard">
+        <div class="fld"><label>Pack Name</label><input id="pname" placeholder="e.g. Starter Pack"></div>
+        <div class="fld"><label>Price (coins)</label><input type="number" id="pprice" placeholder="e.g. 100"></div>
+        <div class="fld"><label>Cards Per Pack</label><input type="number" id="pcount" placeholder="e.g. 5"></div>
+        <div class="fld"><label>Common % Chance</label><input type="number" id="pcom" placeholder="e.g. 60"></div>
+        <div class="fld"><label>Rare % Chance</label><input type="number" id="prar" placeholder="e.g. 30"></div>
+        <div class="fld"><label>Legendary % Chance</label><input type="number" id="pleg" placeholder="e.g. 10"></div>
+        <button class="btn-do" onclick="createPack()">Create Pack</button>
+      </div>
+      <div class="stitle" style="font-size:16px;margin-bottom:16px">Existing Packs</div>
+      <div class="pgrid" id="admpackgrid"></div>
+    </div>
+    <div id="t6" style="display:none">
+      <div class="stitle">Image Manager</div>
+      <div class="ssub">Upload all your card images, assign to cards, then save</div>
+      <div ondragover="event.preventDefault()" ondrop="handleImgDrop(event)" style="border:3px dashed #f59e0b;border-radius:16px;padding:40px;text-align:center;cursor:pointer;margin-bottom:20px;background:#0d0d1f;" onclick="document.getElementById('imgBulkFile').click()">
+        <div style="font-size:48px;margin-bottom:12px;">&#128248;</div>
+        <div style="color:#fbbf24;font-size:20px;font-weight:900;margin-bottom:8px;">Click here or drag &amp; drop</div>
+        <div style="color:#64748b;font-size:13px;">Select ALL your images at once — they will be uploaded automatically</div>
+        <input type="file" id="imgBulkFile" accept="image/*" multiple style="display:none" onchange="loadImgFiles(this.files)">
+      </div>
+      <div id="imgManagerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
+      <div id="imgManagerStatus" style="color:#64748b;font-size:13px;margin-bottom:12px;"></div>
+      <button id="saveImgsBtn" onclick="saveAllImages()" style="display:none;width:100%;padding:18px;background:#10b981;border:none;border-radius:12px;color:#fff;font-size:18px;font-weight:900;cursor:pointer;">SAVE ALL TO DATABASE</button>
+    </div>
+  </div>
+</div>
+
+<div id="editModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Edit</div>
+    <div id="modalBody"></div>
+    <div class="modal-btns">
+      <button class="btn-do" onclick="saveEdit()">Save Changes</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="revealOverlay">
+  <div class="reveal-inner">
+    <div class="rev-title" id="revtitle">Pack Opened!</div>
+    <div id="revealCards"></div>
+    <button class="btn-collect" onclick="closeReveal()">Collect Cards</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+
+var FB_URL = 'https://nexus-89177-default-rtdb.firebaseio.com';
+var DB = { users:[{username:'admin',password:'PRCARDGAME',role:'admin',coins:99999,collection:[],unopened:[]}], cards:[], packs:[] };
+var IMAGES = {}; // stored separately: { cardId: base64 }
+var CU = null;
+var MODE = 'login';
+var editTarget = null;
+var DB_LOADED = false;
+
+function setSyncStatus(s) {
+  var el = document.getElementById('syncInd');
+  if (!el) return;
+  if (s === 'saving') { el.className='sync-indicator saving'; el.innerHTML='<span class="sync-dot"></span>Saving...'; }
+  else { el.className='sync-indicator'; el.innerHTML='<span class="sync-dot"></span>Synced'; }
+}
+
+function ensureAdmin() {
+  for (var i=0; i<DB.users.length; i++) { if (DB.users[i].username==='admin') return; }
+  DB.users.push({username:'admin',password:'PRCARDGAME',role:'admin',coins:99999,collection:[],unopened:[]});
+}
+
+// Load main DB (no images - stays small and fast)
+function loadDB(cb) {
+  fetch(FB_URL + '/db.json')
+  .then(function(r) { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(data) {
+    if (data && data.users) { DB = data; ensureAdmin(); console.log('DB loaded, users:', DB.users.length, 'cards:', DB.cards.length); }
+    else { ensureAdmin(); }
+    DB_LOADED = true; if (cb) cb();
+  })
+  .catch(function(err) { console.error('loadDB failed:', err); DB_LOADED = true; if (cb) cb(); });
+}
+
+// Load images separately after login (non-blocking)
+function loadImages(cb) {
+  fetch(FB_URL + '/images.json')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data) { IMAGES = data; }
+    if (cb) cb();
+  })
+  .catch(function(err) { console.warn('images load failed:', err); if (cb) cb(); });
+}
+
+function saveDB(cb) {
+  setSyncStatus('saving');
+  // Strip images out of cards before saving main DB
+  var dbToSave = JSON.parse(JSON.stringify(DB));
+  dbToSave.cards = dbToSave.cards.map(function(c) {
+    var stripped = JSON.parse(JSON.stringify(c));
+    if (stripped.image && stripped.image.startsWith('data:')) {
+      IMAGES[stripped.id] = stripped.image;
+      stripped.image = '__img__'; // placeholder
+    }
+    return stripped;
+  });
+  // Also strip images from user collections
+  dbToSave.users = dbToSave.users.map(function(u) {
+    var uc = JSON.parse(JSON.stringify(u));
+    if (uc.collection) {
+      uc.collection = uc.collection.map(function(c) {
+        var cc = JSON.parse(JSON.stringify(c));
+        if (cc.image && cc.image.startsWith('data:')) { cc.image = '__img__'; }
+        return cc;
+      });
+    }
+    return uc;
+  });
+
+  fetch(FB_URL + '/db.json', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dbToSave)})
+  .then(function(r) { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function() {
+    // Save images separately
+    return fetch(FB_URL + '/images.json', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(IMAGES)});
+  })
+  .then(function() { setSyncStatus('ok'); if (cb) cb(true); })
+  .catch(function(err) { console.error('saveDB failed:', err); setSyncStatus('ok'); if (cb) cb(false); });
+}
+
+// Resolve image placeholder back to real data
+function resolveImg(card) {
+  if (!card) return card;
+  var c = JSON.parse(JSON.stringify(card));
+  if (c.image === '__img__' && IMAGES[c.id]) { c.image = IMAGES[c.id]; }
+  return c;
+}
+
+function syncUser(cb) {
+  for (var i=0; i<DB.users.length; i++) {
+    if (DB.users[i].username === CU.username) { DB.users[i] = CU; break; }
+  }
+  saveDB(cb);
+}
+
+function waitForDB(cb) {
+  if (DB_LOADED) { cb(); return; }
+  var t = 0;
+  var iv = setInterval(function() {
+    t++;
+    if (DB_LOADED || t > 60) { clearInterval(iv); cb(); }
+  }, 100);
+}
+
+function uid() { return '_' + Math.random().toString(36).slice(2,9); }
+
+var GITHUB_BASE = 'https://raw.githubusercontent.com/dilankrishnan-cmyk/Nexus/main/';
+
+function getImgSrc(card) {
+  var c = resolveImg(card);
+  if (!c.image || c.image === '__img__' || c.image === '') return null;
+  if (c.image.startsWith('http')) return c.image;
+  return GITHUB_BASE + c.image; // just a filename stored
+}
+
+function imgH(card) {
+  var src = getImgSrc(card);
+  if (src) {
+    return '<img src="' + src + '" style="width:100%;height:200px;object-fit:contain;display:block;background:#0a0a15;" onerror="this.parentNode.innerHTML=\'<span style=\\\'font-size:48px;line-height:200px;display:block;text-align:center\\\'>\'+(card.rarity===\'legendary\'?\'&#11088;\':(card.rarity===\'rare\'?\'&#128142;\':\'&#11041;\'))+\'</span>\'">';
+  }
+  var ico = card.rarity==='legendary' ? '&#11088;' : card.rarity==='rare' ? '&#128142;' : '&#11041;';
+  return '<span style="font-size:48px;line-height:200px;display:block;text-align:center">' + ico + '</span>';
+}
+
+function toast(msg, isErr) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = isErr ? 'show terr' : 'show';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(function(){el.className='';}, 2800);
+}
+
+function confetti(n, col) {
+  var cs = ['#FFD700','#FF6347','#00FF95','#60a5fa','#f59e0b'];
+  for (var i=0; i<n; i++) {
+    (function(){
+      setTimeout(function(){
+        var d = document.createElement('div');
+        d.className = 'cdot';
+        d.style.left = Math.random()*window.innerWidth + 'px';
+        d.style.top = '-10px';
+        d.style.background = col || cs[Math.floor(Math.random()*cs.length)];
+        d.style.animationDuration = (1.5+Math.random()*2) + 's';
+        document.body.appendChild(d);
+        setTimeout(function(){d.remove();}, 4000);
+      }, Math.random()*600);
+    })();
+  }
+}
+
+loadDB(null);
+
+function setMode(m) {
+  MODE = m;
+  document.getElementById('tabL').className = 'auth-tab' + (m==='login' ? ' on' : '');
+  document.getElementById('tabR').className = 'auth-tab' + (m==='register' ? ' on' : '');
+  document.getElementById('asbtn').textContent = m==='login' ? 'Login' : 'Create Account';
+  setAuthMsg('', '');
+}
+
+function setAuthMsg(t, c) {
+  var e = document.getElementById('authMsg');
+  e.textContent = t; e.className = c;
+}
+
+function handleAuth() {
+  var u = document.getElementById('au').value.trim();
+  var p = document.getElementById('ap').value;
+  if (!u || !p) { setAuthMsg('Please enter username and password', 'err'); return; }
+  if (MODE === 'login') doLogin(u, p); else doRegister(u, p);
+}
+
+function doLogin(u, p) {
+  setAuthMsg('Connecting...', 'ok');
+  waitForDB(function() {
+    var found = null;
+    for (var i=0; i<DB.users.length; i++) {
+      if (DB.users[i].username === u && DB.users[i].password === p) { found = DB.users[i]; break; }
+    }
+    if (!found) { setAuthMsg('Wrong username or password', 'err'); return; }
+    CU = JSON.parse(JSON.stringify(found));
+    if (!CU.coins && CU.coins !== 0) CU.coins = 20;
+    if (!CU.collection) CU.collection = [];
+    if (!CU.unopened) CU.unopened = [];
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appPage').style.display = 'block';
+    applyRole();
+    // Load images after login (non-blocking, UI shows immediately)
+    loadImages(function() { go(0); });
+  });
+}
+
+function doRegister(u, p) {
+  if (u.length < 3) { setAuthMsg('Username min 3 characters', 'err'); return; }
+  if (p.length < 4) { setAuthMsg('Password min 4 characters', 'err'); return; }
+  setAuthMsg('Connecting...', 'ok');
+  waitForDB(function() {
+    for (var i=0; i<DB.users.length; i++) {
+      if (DB.users[i].username === u) { setAuthMsg('Username already taken', 'err'); return; }
+    }
+    DB.users.push({username:u, password:p, role:'user', coins:20, collection:[], unopened:[]});
+    saveDB(function() {
+      setAuthMsg('Account created! You can now login.', 'ok');
+      setTimeout(function(){ setMode('login'); }, 1500);
+    });
+  });
+}
+
+function logout() {
+  CU = null;
+  document.getElementById('appPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('au').value = '';
+  document.getElementById('ap').value = '';
+  setAuthMsg('', '');
+}
+
+function applyRole() {
+  var a = CU.role === 'admin';
+  var chip = document.getElementById('uchip');
+  chip.textContent = (a ? 'ADMIN  ' : '') + CU.username;
+  chip.className = 'uchip' + (a ? ' adm' : '');
+  document.getElementById('n4').style.display = a ? '' : 'none';
+  document.getElementById('n5').style.display = a ? '' : 'none';
+  document.getElementById('n6').style.display = a ? '' : 'none';
+  document.getElementById('abox').style.display = a ? '' : 'none';
+  updateCoins();
+}
+
+function updateCoins() { document.getElementById('cv').textContent = (CU.coins||0).toLocaleString(); }
+
+function go(n) {
+  for (var i=0; i<7; i++) {
+    var t = document.getElementById('t'+i); if (t) t.style.display = 'none';
+    var b = document.getElementById('n'+i); if (b) b.classList.remove('on');
+  }
+  var tab = document.getElementById('t'+n); if (tab) tab.style.display = 'block';
+  var btn = document.getElementById('n'+n); if (btn) btn.classList.add('on');
+  updateCoins();
+  if (n===0) renderCol();
+  else if (n===1) renderMkt();
+  else if (n===2) renderUnop();
+  else if (n===3) renderSell();
+  else if (n===4) renderPool();
+  else if (n===5) renderAdmPacks();
+  else if (n===6) renderImgManager();
+}
+
+function setCoins() {
+  var v = parseInt(document.getElementById('acoin').value);
+  if (isNaN(v)||v<0) { toast('Enter a valid number', true); return; }
+  CU.coins = v; syncUser(null); updateCoins(); toast('Coins updated!');
+  document.getElementById('acoin').value = '';
+}
+
+function checkDup() {
+  var name = document.getElementById('uname').value.trim().toLowerCase();
+  var warn = document.getElementById('dupwarn');
+  var btn = document.getElementById('forceBtn');
+  var dup = null;
+  for (var i=0; i<DB.cards.length; i++) {
+    if (DB.cards[i].name.toLowerCase() === name) { dup = DB.cards[i]; break; }
+  }
+  if (name && dup) {
+    warn.className = 'infobox warn'; warn.style.display = 'block';
+    warn.textContent = 'Warning: "' + dup.name + '" already exists.';
+    btn.style.display = 'inline-block';
+  } else { warn.style.display = 'none'; btn.style.display = 'none'; }
+}
+
+function uploadCard(force) {
+  var name = document.getElementById('uname').value.trim();
+  var pow = parseInt(document.getElementById('upow').value)||0;
+  var img = document.getElementById('uimg').value.trim();
+  var rar = document.getElementById('urar').value;
+  var sell = parseInt(document.getElementById('usell').value)||15;
+  var file = document.getElementById('ufile').files[0];
+  if (!name) { toast('Card name is required', true); return; }
+  var dup = null;
+  for (var i=0; i<DB.cards.length; i++) {
+    if (DB.cards[i].name.toLowerCase() === name.toLowerCase()) { dup = DB.cards[i]; break; }
+  }
+  if (dup && !force) { toast('Duplicate! Click Upload Anyway.', true); return; }
+  function save(imgData) {
+    var id = uid();
+    // If it's a file upload (base64), store in IMAGES map right away
+    if (imgData && imgData.startsWith('data:')) {
+      IMAGES[id] = imgData;
+      DB.cards.push({id:id, name:name, power:pow, image:'__img__', rarity:rar, sellValue:sell});
+    } else {
+      DB.cards.push({id:id, name:name, power:pow, image:imgData, rarity:rar, sellValue:sell});
+    }
+    saveDB(function() {
+      document.getElementById('uname').value = '';
+      document.getElementById('upow').value = '';
+      document.getElementById('uimg').value = '';
+      document.getElementById('usell').value = '';
+      document.getElementById('ufile').value = '';
+      document.getElementById('dupwarn').style.display = 'none';
+      document.getElementById('forceBtn').style.display = 'none';
+      var conf = document.getElementById('poolconfirm');
+      conf.className = 'infobox ok'; conf.style.display = 'block';
+      conf.textContent = '"' + name + '" added! Pool: ' + DB.cards.length + ' cards.';
+      toast('Card added!'); renderPool();
+    });
+  }
+  if (file) { var r=new FileReader(); r.onload=function(e){save(e.target.result);}; r.readAsDataURL(file); }
+  else save(img);
+}
+
+function createPack() {
+  var name = document.getElementById('pname').value.trim();
+  var price = parseInt(document.getElementById('pprice').value);
+  var count = parseInt(document.getElementById('pcount').value)||3;
+  var c = parseFloat(document.getElementById('pcom').value)||60;
+  var r = parseFloat(document.getElementById('prar').value)||30;
+  var l = parseFloat(document.getElementById('pleg').value)||10;
+  if (!name) { toast('Pack name required', true); return; }
+  if (!price||price<=0) { toast('Valid price required', true); return; }
+  var tot = c+r+l;
+  DB.packs.push({id:uid(), name:name, price:price, count:count, odds:{common:c/tot, rare:r/tot, legendary:l/tot}});
+  saveDB(function() {
+    toast('Pack created!');
+    ['pname','pprice','pcount','pcom','prar','pleg'].forEach(function(id){document.getElementById(id).value='';});
+    renderAdmPacks();
+  });
+}
+
+function deletePack(id) {
+  if (!confirm('Delete this pack?')) return;
+  DB.packs = DB.packs.filter(function(p){return p.id!==id;});
+  saveDB(function(){toast('Pack deleted'); renderAdmPacks();});
+}
+
+function deleteFromPool(id) {
+  if (!confirm('Remove this card from the pool?')) return;
+  DB.cards = DB.cards.filter(function(c){return c.id!==id;});
+  delete IMAGES[id];
+  saveDB(function(){toast('Removed from pool'); renderPool();});
+}
+
+var IS = 'width:100%;padding:11px 13px;background:#0a0a15;border:2px solid #2a2a50;border-radius:7px;color:#e2e8f0;font-size:14px;outline:none;font-family:Arial,sans-serif;margin-top:4px;';
+
+function openEditCard(id) {
+  var card = null;
+  for (var i=0; i<DB.cards.length; i++) { if (DB.cards[i].id===id) { card=DB.cards[i]; break; } }
+  if (!card) return;
+  editTarget = {type:'card', id:id};
+  var hasBase64 = (card.image === '__img__' && IMAGES[card.id]) || (card.image && card.image.startsWith('data:'));
+  var currentUrl = (!hasBase64 && card.image && card.image !== '__img__') ? card.image : '';
+  document.getElementById('modalTitle').textContent = 'Edit Card: ' + card.name;
+  document.getElementById('modalBody').innerHTML =
+    '<div class="fld"><label>Card Name</label><input id="eF0" value="' + card.name + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Power</label><input id="eF1" type="number" value="' + card.power + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Sell Value</label><input id="eF2" type="number" value="' + card.sellValue + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Rarity</label><select id="eF3" style="' + IS + '">' +
+    '<option value="common"' + (card.rarity==='common'?' selected':'') + '>Common</option>' +
+    '<option value="rare"' + (card.rarity==='rare'?' selected':'') + '>Rare</option>' +
+    '<option value="legendary"' + (card.rarity==='legendary'?' selected':'') + '>Legendary</option></select></div>' +
+    '<div class="fld"><label>Image Filename <span style="color:#64748b;font-size:11px;font-weight:400;">(just the filename you uploaded to GitHub, e.g. greencard.jpg)</span></label>' +
+    '<input id="eF4" placeholder="e.g. greencard.jpg or full URL" value="' + currentUrl + '" style="' + IS + '">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">' +
+    '<label style="background:#1a150a;border:2px solid #f59e0b44;color:#fbbf24;padding:8px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">&#128247; Upload Image<input type="file" accept="image/*" style="display:none" onchange="uploadEditImage(this)"></label>' +
+    '<span id="editImgStatus" style="font-size:12px;color:#64748b;"></span>' +
+    '</div></div>';
+  document.getElementById('editModal').className = 'show';
+}
+
+function openEditPack(id) {
+  var pack = null;
+  for (var i=0; i<DB.packs.length; i++) { if (DB.packs[i].id===id) { pack=DB.packs[i]; break; } }
+  if (!pack) return;
+  editTarget = {type:'pack', id:id};
+  document.getElementById('modalTitle').textContent = 'Edit Pack: ' + pack.name;
+  document.getElementById('modalBody').innerHTML =
+    '<div class="fld"><label>Pack Name</label><input id="eF0" value="' + pack.name + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Price</label><input id="eF1" type="number" value="' + pack.price + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Cards Per Pack</label><input id="eF2" type="number" value="' + pack.count + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Common %</label><input id="eF3" type="number" value="' + Math.round(pack.odds.common*100) + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Rare %</label><input id="eF4" type="number" value="' + Math.round(pack.odds.rare*100) + '" style="' + IS + '"></div>' +
+    '<div class="fld"><label>Legendary %</label><input id="eF5" type="number" value="' + Math.round(pack.odds.legendary*100) + '" style="' + IS + '"></div>';
+  document.getElementById('editModal').className = 'show';
+}
+
+function saveEdit() {
+  if (!editTarget) return;
+  if (editTarget.type === 'card') {
+    for (var i=0; i<DB.cards.length; i++) {
+      if (DB.cards[i].id === editTarget.id) {
+        DB.cards[i].name = document.getElementById('eF0').value.trim() || DB.cards[i].name;
+        DB.cards[i].power = parseInt(document.getElementById('eF1').value) || DB.cards[i].power;
+        DB.cards[i].sellValue = parseInt(document.getElementById('eF2').value) || DB.cards[i].sellValue;
+        DB.cards[i].rarity = document.getElementById('eF3').value;
+        var newImg = document.getElementById('eF4') ? document.getElementById('eF4').value.trim() : '';
+        if (newImg) {
+          if (newImg.startsWith('data:')) {
+            IMAGES[DB.cards[i].id] = newImg;
+            DB.cards[i].image = '__img__';
+          } else {
+            // store URL or filename directly
+            DB.cards[i].image = newImg;
+            delete IMAGES[DB.cards[i].id];
+          }
+        }
+        break;
+      }
+    }
+    saveDB(function(){toast('Card updated!'); closeModal(); renderPool();});
+  } else {
+    for (var i=0; i<DB.packs.length; i++) {
+      if (DB.packs[i].id === editTarget.id) {
+        DB.packs[i].name = document.getElementById('eF0').value.trim() || DB.packs[i].name;
+        DB.packs[i].price = parseInt(document.getElementById('eF1').value) || DB.packs[i].price;
+        DB.packs[i].count = parseInt(document.getElementById('eF2').value) || DB.packs[i].count;
+        var c = parseFloat(document.getElementById('eF3').value)||60;
+        var r = parseFloat(document.getElementById('eF4').value)||30;
+        var l = parseFloat(document.getElementById('eF5').value)||10;
+        var tot = c+r+l;
+        DB.packs[i].odds = {common:c/tot, rare:r/tot, legendary:l/tot};
+        break;
+      }
+    }
+    saveDB(function(){toast('Pack updated!'); closeModal(); renderAdmPacks();});
+  }
+}
+
+function closeModal() { document.getElementById('editModal').className = ''; editTarget = null; }
+
+function buyPack(id) {
+  var pack = null;
+  for (var i=0; i<DB.packs.length; i++) { if (DB.packs[i].id===id) { pack=DB.packs[i]; break; } }
+  if (!pack) { toast('Pack not found', true); return; }
+  if (CU.coins < pack.price) { toast('Not enough coins!', true); return; }
+  CU.coins -= pack.price;
+  CU.unopened.push(JSON.parse(JSON.stringify(pack)));
+  syncUser(null); updateCoins();
+  toast('Bought "' + pack.name + '"! Check Unopened Packs.');
+  renderMkt();
+}
+
+function openPack(idx) {
+  var pack = (CU.unopened||[])[idx];
+  if (!pack) { toast('Pack not found', true); return; }
+  if (!DB.cards.length) { toast('No cards in pool yet!', true); return; }
+  CU.unopened.splice(idx, 1);
+  var drawn = [];
+  for (var i=0; i<(pack.count||3); i++) {
+    var rnd = Math.random(), rar;
+    if (rnd < pack.odds.common) rar = 'common';
+    else if (rnd < pack.odds.common + pack.odds.rare) rar = 'rare';
+    else rar = 'legendary';
+    var pool = DB.cards.filter(function(c){return c.rarity===rar;});
+    if (!pool.length) pool = DB.cards;
+    drawn.push(JSON.parse(JSON.stringify(pool[Math.floor(Math.random()*pool.length)])));
+  }
+  if (!CU.collection) CU.collection = [];
+  drawn.forEach(function(c){CU.collection.push(c);});
+  syncUser(null); updateCoins();
+  showReveal(drawn, pack.name);
+}
+
+function showReveal(cards, packName) {
+  document.getElementById('revtitle').textContent = packName;
+  var con = document.getElementById('revealCards');
+  con.innerHTML = '';
+  document.getElementById('revealOverlay').style.display = 'block';
+  cards.forEach(function(card, i) {
+    var d = document.createElement('div');
+    d.className = 'rcard ' + card.rarity;
+    d.innerHTML = '<div class="rcard-img">' + imgH(card) + '</div>' +
+      '<div class="rcard-body"><div class="rcard-name">' + card.name + '</div>' +
+      '<span class="rbadge ' + card.rarity + '">' + card.rarity + '</span>' +
+      '<div class="rcard-pow">PWR ' + card.power + '</div></div>';
+    con.appendChild(d);
+    setTimeout(function() {
+      d.classList.add('show');
+      if (card.rarity==='legendary') confetti(40,'#f59e0b');
+      else if (card.rarity==='rare') confetti(15,'#3b82f6');
+      else confetti(5, null);
+    }, i*650+200);
+  });
+}
+
+function closeReveal() { document.getElementById('revealOverlay').style.display = 'none'; go(0); }
+
+function sellCard(idx) {
+  var c = (CU.collection||[])[idx]; if (!c) return;
+  if (!confirm('Sell "' + c.name + '" for ' + (c.sellValue||10) + ' coins?')) return;
+  CU.collection.splice(idx, 1);
+  CU.coins += (c.sellValue||10);
+  syncUser(null); updateCoins();
+  toast('Sold "' + c.name + '" for ' + (c.sellValue||10) + ' coins');
+  renderSell();
+}
+
+function removeCard(idx) {
+  var c = (CU.collection||[])[idx]; if (!c) return;
+  if (!confirm('Remove "' + c.name + '" from collection?')) return;
+  CU.collection.splice(idx, 1);
+  syncUser(null); toast('Card removed'); renderSell();
+}
+
+function renderCol() {
+  var col = CU.collection||[];
+  var c=0, r=0, l=0;
+  col.forEach(function(x){if(x.rarity==='common')c++;else if(x.rarity==='rare')r++;else l++;});
+  document.getElementById('colstats').innerHTML =
+    '<div class="sbox"><div class="snum">'+col.length+'</div><div class="slbl">Total</div></div>' +
+    '<div class="sbox"><div class="snum" style="color:#9ca3af">'+c+'</div><div class="slbl">Common</div></div>' +
+    '<div class="sbox"><div class="snum" style="color:#60a5fa">'+r+'</div><div class="slbl">Rare</div></div>' +
+    '<div class="sbox"><div class="snum" style="color:#fbbf24">'+l+'</div><div class="slbl">Legendary</div></div>';
+  var g = document.getElementById('colgrid');
+  if (!col.length) { g.innerHTML='<div class="empty"><div class="eicon">&#11041;</div>No cards yet. Buy some packs!</div>'; return; }
+  g.innerHTML = col.map(function(c) {
+    return '<div class="citem '+c.rarity+'"><div class="cimg">'+imgH(c)+'</div>' +
+      '<div class="cinfo"><div class="cname">'+c.name+'</div><div class="cpow">PWR '+c.power+'</div>' +
+      '<span class="rbadge '+c.rarity+'">'+c.rarity+'</span>' +
+      '<div class="sval">Sell value: '+(c.sellValue||10)+' coins</div></div></div>';
+  }).join('');
+}
+
+function packHTML(p, btns) {
+  var cp=Math.round(p.odds.common*100), rp=Math.round(p.odds.rare*100), lp=Math.round(p.odds.legendary*100);
+  return '<div class="pitem"><span class="picon">&#128230;</span>' +
+    '<div class="pname">'+p.name+'</div>' +
+    '<div class="pprice">'+p.price.toLocaleString()+' coins</div>' +
+    '<div class="pcnt">'+p.count+' cards per pack</div>' +
+    '<div class="orow"><span style="color:#9ca3af">Common</span><span>'+cp+'%</span></div>' +
+    '<div class="otrack"><div class="ofill common" style="width:'+cp+'%"></div></div>' +
+    '<div class="orow"><span style="color:#60a5fa">Rare</span><span>'+rp+'%</span></div>' +
+    '<div class="otrack"><div class="ofill rare" style="width:'+rp+'%"></div></div>' +
+    '<div class="orow"><span style="color:#fbbf24">Legendary</span><span>'+lp+'%</span></div>' +
+    '<div class="otrack"><div class="ofill legendary" style="width:'+lp+'%"></div></div>' +
+    btns + '</div>';
+}
+
+function renderMkt() {
+  var g = document.getElementById('mktgrid');
+  if (!DB.packs.length) { g.innerHTML='<div class="empty"><div class="eicon">&#128722;</div>No packs available yet.</div>'; return; }
+  g.innerHTML = DB.packs.map(function(p) {
+    var ok = CU.coins >= p.price;
+    return packHTML(p, '<button class="btn-bp" onclick="buyPack(\''+p.id+'\')"'+(ok?'':' disabled')+'>'+(ok?'Buy Pack':'Not Enough Coins')+'</button>');
+  }).join('');
+}
+
+function renderUnop() {
+  var ps = CU.unopened||[];
+  var g = document.getElementById('unopgrid');
+  if (!ps.length) { g.innerHTML='<div class="empty"><div class="eicon">&#128230;</div>No unopened packs. Visit the Marketplace!</div>'; return; }
+  g.innerHTML = ps.map(function(p,i) {
+    return '<div class="pitem"><span class="picon">&#128230;</span>' +
+      '<div class="pname">'+p.name+'</div>' +
+      '<div class="pcnt">'+(p.count||3)+' cards inside</div>' +
+      '<button class="btn-op" onclick="openPack('+i+')">Open Pack</button></div>';
+  }).join('');
+}
+
+function renderSell() {
+  var a = CU.role==='admin';
+  var col = CU.collection||[];
+  document.getElementById('selltitle').textContent = a ? 'Manage Collection' : 'Sell Cards';
+  var g = document.getElementById('sellgrid');
+  if (!col.length) { g.innerHTML='<div class="empty"><div class="eicon">&#128184;</div>No cards to '+(a?'manage':'sell')+'.</div>'; return; }
+  g.innerHTML = col.map(function(c,i) {
+    var btn = a
+      ? '<button class="btn-dc" onclick="removeCard('+i+')">Remove</button>'
+      : '<button class="btn-sc" onclick="sellCard('+i+')">Sell for '+(c.sellValue||10)+' coins</button>';
+    return '<div class="citem '+c.rarity+'"><div class="cimg">'+imgH(c)+'</div>' +
+      '<div class="cinfo"><div class="cname">'+c.name+'</div><div class="cpow">PWR '+c.power+'</div>' +
+      '<span class="rbadge '+c.rarity+'">'+c.rarity+'</span>'+btn+'</div></div>';
+  }).join('');
+}
+
+function bulkUploadImages(input) {
+  var files = Array.from(input.files);
+  if (!files.length) return;
+  var status = document.getElementById('convertStatus');
+  status.style.color = '#fbbf24';
+  status.textContent = 'Matching ' + files.length + ' files to cards...';
+
+  // Build a map: normalized name -> card
+  var cardMap = {};
+  DB.cards.forEach(function(c) {
+    var key = c.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+    cardMap[key] = c;
+  });
+
+  var matched = [];
+  files.forEach(function(file) {
+    var fname = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]/g,'');
+    // Exact match first
+    var card = cardMap[fname];
+    // Fuzzy: find card whose name is contained in filename or vice versa
+    if (!card) {
+      Object.keys(cardMap).forEach(function(k) {
+        if (!card && (fname.indexOf(k) !== -1 || k.indexOf(fname) !== -1)) {
+          card = cardMap[k];
+        }
+      });
+    }
+    if (card) matched.push({file: file, card: card});
+  });
+
+  if (!matched.length) {
+    status.style.color = '#ef4444';
+    status.textContent = 'No files matched card names. Name your image files to match card names (e.g. "Nick Fury.jpg")';
+    return;
+  }
+
+  status.textContent = 'Uploading ' + matched.length + '/' + files.length + ' matched images...';
+  var done = 0;
+
+  function processOne(i) {
+    if (i >= matched.length) {
+      saveDB(function(ok) {
+        if (ok) {
+          status.style.color = '#10b981';
+          status.textContent = 'Done! ' + done + ' cards updated. ' + (files.length - matched.length) + ' files unmatched.';
+          renderPool();
+        } else {
+          status.style.color = '#ef4444';
+          status.textContent = 'Upload done but save failed. Try again.';
+        }
+      });
+      return;
+    }
+    var m = matched[i];
+    compressImage(m.file, function(err, dataUrl) {
+      if (!err && dataUrl) {
+        for (var j=0; j<DB.cards.length; j++) {
+          if (DB.cards[j].id === m.card.id) {
+            DB.cards[j].image = '__img__';
+            IMAGES[m.card.id] = dataUrl;
+            break;
+          }
+        }
+        done++;
+      }
+      status.textContent = 'Processing ' + (i+1) + '/' + matched.length + '...';
+      processOne(i+1);
+    });
+  }
+  processOne(0);
+}
+
+function convertAllToImgur() {
+  var btn = document.getElementById('convertAllBtn');
+  var status = document.getElementById('convertStatus');
+  // Cards with base64 in IMAGES map
+  var toConvert = DB.cards.filter(function(c) {
+    return c.image === '__img__' && IMAGES[c.id] && IMAGES[c.id].startsWith('data:');
+  });
+  console.log('Cards to convert:', toConvert.length, 'Total IMAGES keys:', Object.keys(IMAGES).length);
+  if (!toConvert.length) {
+    status.style.color = '#ef4444';
+    status.textContent = 'No uploaded images found to convert. (IMAGES: ' + Object.keys(IMAGES).length + ', cards: ' + DB.cards.length + ')';
+    return;
+  }
+  btn.disabled = true;
+  status.style.color = '#fbbf24';
+  status.textContent = 'Converting 0/' + toConvert.length + '...';
+  var done = 0, failed = 0;
+  function convertOne(i) {
+    if (i >= toConvert.length) {
+      saveDB(function(ok) {
+        if (ok) {
+          status.style.color = '#10b981';
+          status.textContent = 'Done! ' + done + ' converted' + (failed ? ', ' + failed + ' failed' : '') + '. Reload to confirm.';
+          btn.textContent = 'Convert Complete';
+        } else {
+          status.style.color = '#ef4444';
+          status.textContent = 'Converted but save failed. Try again.';
+          btn.disabled = false;
+        }
+        renderPool();
+      });
+      return;
+    }
+    var card = toConvert[i];
+    var imgData = IMAGES[card.id];
+    var arr = imgData.split(','), mime = arr[0].match(/:(.*?);/)[1];
+    var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
+    while(n--){ u8[n] = bstr.charCodeAt(n); }
+    var file = new File([u8], 'card.jpg', {type: mime});
+    var fd = new FormData();
+    fd.append('file', file);
+    fetch('https://telegra.ph/upload', {method:'POST', body:fd})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data[0] && data[0].src) {
+        var url = 'https://telegra.ph' + data[0].src;
+        for (var j=0; j<DB.cards.length; j++) {
+          if (DB.cards[j].id === card.id) { DB.cards[j].image = url; break; }
+        }
+        delete IMAGES[card.id];
+        done++;
+        console.log('Converted:', card.name, '->', url);
+      } else { failed++; console.warn('Failed:', card.name, data); }
+      status.textContent = 'Converting ' + (done+failed) + '/' + toConvert.length + '...';
+      convertOne(i+1);
+    })
+    .catch(function(e){
+      failed++;
+      console.error('Error:', card.name, e);
+      status.textContent = 'Converting ' + (done+failed) + '/' + toConvert.length + '...';
+      convertOne(i+1);
+    });
+  }
+  convertOne(0);
+}
+
+function renderPool() {
+  var cnt = document.getElementById('poolcount'); if (cnt) cnt.textContent = DB.cards.length;
+  var g = document.getElementById('poolgrid');
+  if (!DB.cards.length) { g.innerHTML='<div class="empty"><div class="eicon">&#11041;</div>No cards uploaded yet.</div>'; return; }
+  g.innerHTML = DB.cards.map(function(c) {
+    return '<div class="citem '+c.rarity+'"><div class="cimg">'+imgH(c)+'</div>' +
+      '<div class="cinfo"><div class="cname">'+c.name+'</div><div class="cpow">PWR '+c.power+'</div>' +
+      '<span class="rbadge '+c.rarity+'">'+c.rarity+'</span>' +
+      '<div class="sval">Sell: '+(c.sellValue||10)+' coins</div>' +
+      '<button class="btn-ec" onclick="openEditCard(\''+c.id+'\')">Edit</button>' +
+      '<button class="btn-dc" onclick="deleteFromPool(\''+c.id+'\')">Remove</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderAdmPacks() {
+  var g = document.getElementById('admpackgrid');
+  if (!DB.packs.length) { g.innerHTML='<div class="empty"><div class="eicon">&#10022;</div>No packs yet.</div>'; return; }
+  g.innerHTML = DB.packs.map(function(p) {
+    return packHTML(p,
+      '<button class="btn-ep" onclick="openEditPack(\''+p.id+'\')">Edit Pack</button>' +
+      '<button class="btn-dp" onclick="deletePack(\''+p.id+'\')">Delete Pack</button>');
+  }).join('');
+}
+
+function compressImage(file, cb) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var MAX = 400, w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
+        else { w = Math.round(w*MAX/h); h = MAX; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(null, canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = function(){ cb('Could not read image'); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function(){ cb('Could not read file'); };
+  reader.readAsDataURL(file);
+}
+
+function uploadImageFile(file, cb) {
+  var fd = new FormData();
+  fd.append('reqtype', 'fileupload');
+  fd.append('fileToUpload', file);
+  // Try via CORS proxy
+  fetch('https://corsproxy.io/?' + encodeURIComponent('https://catbox.moe/user/api.php'), { method:'POST', body:fd })
+  .then(function(r){ return r.text(); })
+  .then(function(url){
+    url = url.trim();
+    if (url.startsWith('https://')) { cb(null, url); }
+    else { throw new Error('bad response: ' + url); }
+  })
+  .catch(function(e){
+    console.warn('catbox/proxy failed, compressing to base64:', e);
+    compressImage(file, cb);
+  });
+}
+
+function uploadEditImage(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var status = document.getElementById('editImgStatus');
+  status.style.color = '#fbbf24';
+  status.textContent = 'Uploading...';
+  uploadImageFile(file, function(err, url) {
+    if (err) { status.style.color='#ef4444'; status.textContent=err; }
+    else { document.getElementById('eF4').value=url; status.style.color='#10b981'; status.textContent='Done! Click Save Card.'; }
+  });
+}
+
+function uploadToImgur(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var status = document.getElementById('imgurStatus');
+  status.style.color = '#fbbf24';
+  status.textContent = 'Uploading...';
+  uploadImageFile(file, function(err, url) {
+    if (err) { status.style.color='#ef4444'; status.textContent=err; }
+    else { document.getElementById('uimg').value=url; status.style.color='#10b981'; status.textContent='Uploaded!'; }
+  });
+}
+
+var MATCHER_ASSIGNMENTS = {};
+
+function openMatcher(input) {
+  var files = Array.from(input.files);
+  if (!files.length) return;
+  MATCHER_ASSIGNMENTS = {};
+  var grid = document.getElementById('matcherGrid');
+  grid.innerHTML = '';
+  document.getElementById('matcherStatus').textContent = 'For each image, pick the card it belongs to from the dropdown. Then click Save All.';
+
+  // Build card options HTML once
+  var opts = '<option value="">-- Pick a card --</option>' + DB.cards.map(function(c) {
+    return '<option value="' + c.id + '">' + c.name + ' (' + c.rarity + ')</option>';
+  }).join('');
+
+  var pending = files.length;
+  files.forEach(function(file, i) {
+    var objUrl = URL.createObjectURL(file);
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:14px;background:#0d0d1f;border:2px solid #2a2a50;border-radius:10px;padding:12px;';
+    row.innerHTML = '<img src="' + objUrl + '" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0;">' +
+      '<div style="flex:1;min-width:0;">' +
+      '<div style="color:#94a3b8;font-size:11px;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + file.name + '</div>' +
+      '<select id="sel_' + i + '" style="width:100%;padding:8px;background:#0a0a15;border:2px solid #2a2a50;border-radius:7px;color:#e2e8f0;font-size:13px;">' + opts + '</select>' +
+      '</div>';
+    // Store file ref
+    row.setAttribute('data-idx', i);
+    grid.appendChild(row);
+
+    // Read file into base64 for later
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var MAX = 400, w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        MATCHER_ASSIGNMENTS['file_' + i] = canvas.toDataURL('image/jpeg', 0.82);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('matcherOverlay').style.display = 'block';
+}
+
+function saveMatches() {
+  var saved = 0;
+  var rows = document.getElementById('matcherGrid').children;
+  for (var i = 0; i < rows.length; i++) {
+    var sel = rows[i].querySelector('select');
+    var cardId = sel ? sel.value : '';
+    var dataUrl = MATCHER_ASSIGNMENTS['file_' + i];
+    if (cardId && dataUrl) {
+      for (var j = 0; j < DB.cards.length; j++) {
+        if (DB.cards[j].id === cardId) {
+          DB.cards[j].image = '__img__';
+          IMAGES[cardId] = dataUrl;
+          saved++;
+          break;
+        }
+      }
+    }
+  }
+  if (!saved) { document.getElementById('matcherStatus').textContent = 'Nothing selected! Use the dropdowns to pick cards.'; return; }
+  document.getElementById('matcherStatus').textContent = 'Saving ' + saved + ' images...';
+  saveDB(function(ok) {
+    if (ok) { toast('Saved ' + saved + ' images!'); closeMatcherOverlay(); renderPool(); }
+    else { document.getElementById('matcherStatus').textContent = 'Save failed. Try again.'; }
+  });
+}
+
+function closeMatcherOverlay() {
+  document.getElementById('matcherOverlay').style.display = 'none';
+  MATCHER_ASSIGNMENTS = {};
+}
+
+var IMG_MANAGER_FILES = {};
+
+function handleImgDrop(e) {
+  e.preventDefault();
+  loadImgFiles(e.dataTransfer.files);
+}
+
+function loadImgFiles(files) {
+  var arr = Array.from(files);
+  if (!arr.length) return;
+  var status = document.getElementById('imgManagerStatus');
+  status.style.color = '#fbbf24';
+  status.textContent = 'Loading ' + arr.length + ' images...';
+  var done = 0;
+  arr.forEach(function(file) {
+    (function(f) {
+      uploadImageFile(f, function(err, url) {
+        // url is either a catbox URL or base64
+        IMG_MANAGER_FILES[f.name] = { dataUrl: url || '', cardId: '', isCatbox: url && url.startsWith('https://') };
+        done++;
+        status.textContent = 'Uploading ' + done + '/' + arr.length + '...';
+        if (done === arr.length) {
+          status.style.color = '#10b981';
+          status.textContent = done + ' images ready. Use the dropdowns to assign each to a card.';
+          document.getElementById('saveImgsBtn').style.display = 'block';
+          renderImgManager();
+        }
+      });
+    })(file);
+  });
+}
+
+function renderImgManager() {
+  var grid = document.getElementById('imgManagerGrid');
+  var keys = Object.keys(IMG_MANAGER_FILES);
+  if (!keys.length) { grid.innerHTML = ''; return; }
+  var opts = '<option value="">-- Pick card --</option>' + DB.cards.map(function(c) {
+    return '<option value="' + c.id + '">' + c.name + '</option>';
+  }).join('');
+  grid.innerHTML = '';
+  keys.forEach(function(fname) {
+    var f = IMG_MANAGER_FILES[fname];
+    var div = document.createElement('div');
+    div.style.cssText = 'background:#0d0d1f;border:2px solid #2a2a50;border-radius:10px;overflow:hidden;';
+    var img = document.createElement('img');
+    img.src = f.dataUrl;
+    img.style.cssText = 'width:100%;height:130px;object-fit:cover;display:block;';
+    var inner = document.createElement('div');
+    inner.style.cssText = 'padding:8px;';
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'color:#64748b;font-size:10px;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+    lbl.title = fname; lbl.textContent = fname;
+    var sel = document.createElement('select');
+    sel.style.cssText = 'width:100%;padding:6px;background:#0a0a15;border:2px solid #2a2a50;border-radius:6px;color:#e2e8f0;font-size:11px;';
+    sel.innerHTML = opts;
+    sel.setAttribute('data-fname', fname);
+    sel.onchange = function() { assignImg(this.getAttribute('data-fname'), this.value); };
+    inner.appendChild(lbl); inner.appendChild(sel);
+    div.appendChild(img); div.appendChild(inner);
+    grid.appendChild(div);
+  });
+}
+
+function assignImg(fname, cardId) {
+  if (IMG_MANAGER_FILES[fname]) IMG_MANAGER_FILES[fname].cardId = cardId;
+  var assigned = Object.values(IMG_MANAGER_FILES).filter(function(f){ return f.cardId; }).length;
+  var total = Object.keys(IMG_MANAGER_FILES).length;
+  var status = document.getElementById('imgManagerStatus');
+  status.style.color = assigned === total ? '#10b981' : '#fbbf24';
+  status.textContent = assigned + '/' + total + ' images assigned.';
+}
+
+function saveAllImages() {
+  var btn = document.getElementById('saveImgsBtn');
+  var status = document.getElementById('imgManagerStatus');
+  var saved = 0;
+  Object.keys(IMG_MANAGER_FILES).forEach(function(fname) {
+    var f = IMG_MANAGER_FILES[fname];
+    if (f.cardId && f.dataUrl) {
+      for (var j=0; j<DB.cards.length; j++) {
+        if (DB.cards[j].id === f.cardId) {
+          if (f.isCatbox) {
+            DB.cards[j].image = f.dataUrl; // store URL directly, not in IMAGES
+            delete IMAGES[f.cardId];
+          } else {
+            DB.cards[j].image = '__img__';
+            IMAGES[f.cardId] = f.dataUrl;
+          }
+          saved++; break;
+        }
+      }
+    }
+  });
+  if (!saved) { status.style.color='#ef4444'; status.textContent='Assign images to cards first!'; return; }
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  status.style.color = '#fbbf24'; status.textContent = 'Saving ' + saved + ' images...';
+  saveDB(function(ok) {
+    if (ok) {
+      status.style.color = '#10b981';
+      status.textContent = saved + ' images saved! Everyone can now see them.';
+      btn.textContent = 'SAVED!';
+      toast(saved + ' images saved!');
+      IMG_MANAGER_FILES = {};
+      renderImgManager();
+      renderPool();
+    } else {
+      status.style.color = '#ef4444'; status.textContent = 'Save failed. Try again.';
+      btn.textContent = 'SAVE ALL TO DATABASE'; btn.disabled = false;
+    }
+  });
+}
+
+document.getElementById('ap').addEventListener('keydown', function(e){if(e.key==='Enter')handleAuth();});
+
+function importFromPaste() {
+  var btn = document.getElementById('importBtn');
+  var msg = document.getElementById('importMsg');
+  var raw = document.getElementById('importPaste').value.trim();
+  if (!raw) { msg.style.color='#ef4444'; msg.textContent='Paste your JSON first.'; return; }
+  var src;
+  try {
+    var parsed = JSON.parse(raw);
+    // Handle all possible structures
+    if (parsed.db) src = parsed.db;                          // Firebase export: { db: { cards, packs, users } }
+    else if (parsed.record) src = parsed.record;             // JSONBin: { record: { cards, packs } }
+    else if (parsed.cards) src = parsed;                     // Direct: { cards, packs }
+    else {
+      // Try to find cards anywhere in the object
+      var keys = Object.keys(parsed);
+      for (var k=0; k<keys.length; k++) {
+        if (parsed[keys[k]] && parsed[keys[k]].cards) { src = parsed[keys[k]]; break; }
+      }
+    }
+  } catch(e) {
+    msg.style.color='#ef4444'; msg.textContent='Invalid JSON: ' + e.message; return;
+  }
+  if (!src) { msg.style.color='#ef4444'; msg.textContent='Could not find data. Structure: ' + JSON.stringify(Object.keys(parsed||{})); return; }
+
+  // Cards might be an array or an object with numeric keys (Firebase format)
+  var cardsArr = [];
+  if (Array.isArray(src.cards)) {
+    cardsArr = src.cards;
+  } else if (src.cards && typeof src.cards === 'object') {
+    cardsArr = Object.values(src.cards);
+  }
+
+  var packsArr = [];
+  if (Array.isArray(src.packs)) {
+    packsArr = src.packs;
+  } else if (src.packs && typeof src.packs === 'object') {
+    packsArr = Object.values(src.packs);
+  }
+
+  if (!cardsArr.length && !packsArr.length) {
+    msg.style.color='#ef4444';
+    msg.textContent='No cards or packs found. Keys found: ' + JSON.stringify(Object.keys(src));
+    return;
+  }
+
+  btn.disabled = true;
+  msg.style.color = '#fbbf24';
+  msg.textContent = 'Found ' + cardsArr.length + ' cards and ' + packsArr.length + ' packs. Importing...';
+
+  var imported = 0;
+  cardsArr.forEach(function(c) {
+    if (!c || !c.name) return;
+    var exists = false;
+    for (var i=0; i<DB.cards.length; i++) {
+      if (DB.cards[i].name.toLowerCase() === c.name.toLowerCase()) { exists=true; break; }
+    }
+    if (!exists) {
+      var newCard = {id:uid(), name:c.name, power:c.power||0, rarity:c.rarity||'common', sellValue:c.sellValue||15, image:'__img__'};
+      if (c.image && c.image.startsWith('data:')) { IMAGES[newCard.id]=c.image; }
+      else if (c.image && c.image !== '__img__') { newCard.image=c.image; }
+      else { newCard.image=''; }
+      DB.cards.push(newCard);
+      imported++;
+    }
+  });
+
+  var importedPacks = 0;
+  packsArr.forEach(function(p) {
+    if (!p || !p.name) return;
+    var exists = false;
+    for (var i=0; i<DB.packs.length; i++) {
+      if (DB.packs[i].name.toLowerCase() === p.name.toLowerCase()) { exists=true; break; }
+    }
+    if (!exists) {
+      DB.packs.push({id:uid(), name:p.name, price:p.price||100, count:p.count||3, odds:p.odds||{common:0.6,rare:0.3,legendary:0.1}});
+      importedPacks++;
+    }
+  });
+
+  msg.textContent = 'Saving ' + imported + ' cards and ' + importedPacks + ' packs...';
+  saveDB(function(ok) {
+    if (ok) {
+      msg.style.color='#10b981';
+      msg.textContent='Done! Imported ' + imported + ' cards and ' + importedPacks + ' packs.';
+      btn.textContent='Import Complete';
+      document.getElementById('importPaste').value='';
+      renderPool(); renderAdmPacks();
+    } else {
+      msg.style.color='#ef4444';
+      msg.textContent='Save failed. Check console.';
+      btn.disabled=false; btn.textContent='Retry';
+    }
+  });
+}
+document.getElementById('au').addEventListener('keydown', function(e){if(e.key==='Enter')handleAuth();});
+
+</script>
+</body>
+</html>
